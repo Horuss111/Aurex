@@ -290,7 +290,7 @@ export function RequestCardForm() {
       )}
 
       {error && (
-        <p style={{ fontSize: "0.85rem", color: "var(--accent)", background: "rgba(99,102,241,0.08)", padding: "0.6rem 1rem", borderRadius: "8px", border: "1px solid rgba(99,102,241,0.2)" }}>
+        <p style={{ fontSize: "0.85rem", color: "var(--ui-accent)", background: "rgba(99,102,241,0.08)", padding: "0.6rem 1rem", borderRadius: "8px", border: "1px solid rgba(99,102,241,0.2)" }}>
           {error}
         </p>
       )}

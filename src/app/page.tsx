@@ -3,14 +3,17 @@ import { LogoCloud } from "@/components/ui/logo-cloud-3";
 import { ScrollReveal } from "@/components/ui/scroll-reveal";
 import { GlassNavbar } from "@/components/ui/glass-navbar";
 import { ParticleField } from "@/components/ui/particle-field";
-import { AnimatedHeroGraphic } from "@/components/ui/animated-hero-graphic";
 import { NavClient } from "@/components/ui/nav-client";
 import { StatCounter } from "@/components/ui/stat-counter";
 import { Testimonials } from "@/components/ui/testimonials";
 import { FAQ } from "@/components/ui/faq";
+import { AnimatedHeroGraphic } from "@/components/ui/animated-hero-graphic";
+import { SplineScene } from "@/components/ui/splite";
+import { Spotlight } from "@/components/ui/spotlight";
+import { AnimatedHero } from "@/components/ui/animated-hero";
 
 const logos = [
-  { src: "https://svgl.app/library/nextjs_wordmark_light.svg", alt: "Next.js Logo" },
+  { src: "https://svgl.app/library/nextjs_logo_light.svg", alt: "Next.js Logo" },
   { src: "https://svgl.app/library/supabase_wordmark_light.svg", alt: "Supabase Logo" },
   { src: "https://svgl.app/library/vercel_wordmark.svg", alt: "Vercel Logo" },
   { src: "https://svgl.app/library/openai_wordmark_light.svg", alt: "OpenAI Logo" },
@@ -19,9 +22,9 @@ const logos = [
   { src: "https://svgl.app/library/turso-wordmark-light.svg", alt: "Turso Logo" },
   { src: "https://svgl.app/library/clerk-wordmark-light.svg", alt: "Clerk Logo" },
   { src: "https://svgl.app/library/nvidia-wordmark-light.svg", alt: "Nvidia Logo" },
-  { src: "https://svgl.app/library/stripe-wordmark-light.svg", alt: "Stripe Logo" },
-  { src: "https://svgl.app/library/prisma_wordmark_light.svg", alt: "Prisma Logo" },
-  { src: "https://svgl.app/library/typescript_wordmark.svg", alt: "TypeScript Logo" },
+  { src: "https://svgl.app/library/stripe.svg", alt: "Stripe Logo" },
+  { src: "https://svgl.app/library/prisma.svg", alt: "Prisma Logo" },
+  { src: "https://svgl.app/library/typescript.svg", alt: "TypeScript Logo" },
 ];
 
 const features = [
@@ -111,35 +114,56 @@ export default function Home() {
           </GlassNavbar>
 
           {/* ─── Hero ───────────────────────────────────────── */}
-          <main className="hero" id="hero">
+          <main className="hero-split" id="hero">
             <ParticleField />
-            <div className="eyebrow">
-              <span className="eyebrow-line" />
-              Premium Payment Card
-              <span className="eyebrow-line" />
+            <Spotlight size={500} />
+
+            {/* Left — text */}
+            <div className="hero-split-left">
+              <div className="eyebrow">
+                <span className="eyebrow-line" />
+                Premium Payment Card
+                <span className="eyebrow-line" />
+              </div>
+              <h1 className="hero-title" style={{ textAlign: "left", maxWidth: 560 }}>
+                One Card for<br />Every Payment
+              </h1>
+              <p className="hero-subtitle" style={{ textAlign: "left" }}>
+                Apply in minutes. Pay anywhere in the world. Zero foreign fees, instant approvals.
+              </p>
+              <div className="hero-actions" style={{ justifyContent: "flex-start" }}>
+                <a href="/request-card" className="btn-primary-solid">Request a Card</a>
+                <a href="#how-it-works" className="btn-secondary">
+                  <svg viewBox="0 0 24 24" width="16" height="16">
+                    <polygon points="5 3 19 12 5 21 5 3" fill="currentColor" />
+                  </svg>
+                  How it works
+                </a>
+              </div>
+              <p className="hero-trust" style={{ textAlign: "left" }}>
+                No credit check&nbsp;&nbsp;·&nbsp;&nbsp;Free to apply&nbsp;&nbsp;·&nbsp;&nbsp;Instant decision
+              </p>
             </div>
-            <h1 className="hero-title">
-              One Card for<br />Every Payment
-            </h1>
-            <p className="hero-subtitle">
-              Apply in minutes. Pay anywhere in the world. Zero foreign fees, instant approvals.
-            </p>
-            <div className="hero-actions">
-              <a href="/request-card" className="btn-primary-solid">Request a Card</a>
-              <a href="#how-it-works" className="btn-secondary">
-                <svg viewBox="0 0 24 24" width="16" height="16">
-                  <polygon points="5 3 19 12 5 21 5 3" fill="currentColor" />
-                </svg>
-                How it works
-              </a>
+
+            {/* Right — 3D scene */}
+            <div className="hero-split-right">
+              <SplineScene
+                scene="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"
+                className="w-full h-full"
+              />
             </div>
-            <p className="hero-trust">
-              No credit check&nbsp;&nbsp;·&nbsp;&nbsp;Free to apply&nbsp;&nbsp;·&nbsp;&nbsp;Instant decision
-            </p>
           </main>
 
-          {/* ─── Animated Hero Graphic ──────────────────────── */}
-          <AnimatedHeroGraphic />
+          {/* ─── Card Showcase ──────────────────────────────── */}
+          <ScrollReveal>
+            <section className="card-showcase" id="card-showcase">
+              <div className="section-header">
+                <p className="section-eyebrow">The Aurex Card</p>
+                <h2 className="section-title">Designed for<br />the world stage</h2>
+              </div>
+              <AnimatedHeroGraphic />
+            </section>
+          </ScrollReveal>
 
           {/* ─── Stats ──────────────────────────────────────── */}
           <ScrollReveal>
@@ -156,6 +180,11 @@ export default function Home() {
               <p className="section-eyebrow">Trusted Technology Stack</p>
               <LogoCloud logos={logos} className="logo-cloud" />
             </section>
+          </ScrollReveal>
+
+          {/* ─── Animated Tagline ───────────────────────────── */}
+          <ScrollReveal>
+            <AnimatedHero />
           </ScrollReveal>
 
           {/* ─── Features ───────────────────────────────────── */}
