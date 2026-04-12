@@ -1,9 +1,16 @@
+"use client";
+
+import { useState } from "react";
 import { RequestCardForm } from "@/components/ui/request-card-form";
 import { DottedSurface } from "@/components/ui/dotted-surface";
 import { GlassNavbar } from "@/components/ui/glass-navbar";
 import { NavClient } from "@/components/ui/nav-client";
 
 export default function RequestCardPage() {
+  const [cardName, setCardName] = useState("");
+
+  const displayName = cardName.trim() || "Your Name";
+
   return (
     <>
       <DottedSurface className="size-full fixed inset-0 -z-20 bg-[var(--bg)]" />
@@ -52,11 +59,21 @@ export default function RequestCardPage() {
                 <div className="rc-card-footer">
                   <div>
                     <div className="rc-card-meta-label">Card Holder</div>
-                    <div className="rc-card-meta-value">Your Name</div>
+                    <div
+                      className="rc-card-meta-value"
+                      style={{
+                        transition: "opacity 0.2s ease",
+                        opacity: cardName.trim() ? 1 : 0.5,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.05em",
+                      }}
+                    >
+                      {displayName}
+                    </div>
                   </div>
                   <div>
                     <div className="rc-card-meta-label">Expires</div>
-                    <div className="rc-card-meta-value">12/28</div>
+                    <div className="rc-card-meta-value">04/29</div>
                   </div>
                   <div className="rc-card-brand">
                     <svg viewBox="0 0 38 24" width="38" height="24">
@@ -86,7 +103,7 @@ export default function RequestCardPage() {
 
         {/* ── Right — form ──────────────────────────────────── */}
         <div className="rc-right">
-          <RequestCardForm />
+          <RequestCardForm onNameChange={setCardName} />
         </div>
       </div>
     </>

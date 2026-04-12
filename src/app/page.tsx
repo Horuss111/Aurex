@@ -13,18 +13,16 @@ import { Spotlight } from "@/components/ui/spotlight";
 import { AnimatedHero } from "@/components/ui/animated-hero";
 
 const logos = [
-  { src: "https://svgl.app/library/nextjs_logo_light.svg", alt: "Next.js Logo" },
-  { src: "https://svgl.app/library/supabase_wordmark_light.svg", alt: "Supabase Logo" },
-  { src: "https://svgl.app/library/vercel_wordmark.svg", alt: "Vercel Logo" },
-  { src: "https://svgl.app/library/openai_wordmark_light.svg", alt: "OpenAI Logo" },
-  { src: "https://svgl.app/library/claude-ai-wordmark-icon_light.svg", alt: "Claude AI Logo" },
-  { src: "https://svgl.app/library/github_wordmark_light.svg", alt: "GitHub Logo" },
-  { src: "https://svgl.app/library/turso-wordmark-light.svg", alt: "Turso Logo" },
-  { src: "https://svgl.app/library/clerk-wordmark-light.svg", alt: "Clerk Logo" },
-  { src: "https://svgl.app/library/nvidia-wordmark-light.svg", alt: "Nvidia Logo" },
-  { src: "https://svgl.app/library/stripe.svg", alt: "Stripe Logo" },
-  { src: "https://svgl.app/library/prisma.svg", alt: "Prisma Logo" },
-  { src: "https://svgl.app/library/typescript.svg", alt: "TypeScript Logo" },
+  { src: "https://cdn.simpleicons.org/visa", alt: "Visa" },
+  { src: "https://cdn.simpleicons.org/mastercard", alt: "Mastercard" },
+  { src: "https://cdn.simpleicons.org/paypal", alt: "PayPal" },
+  { src: "https://cdn.simpleicons.org/stripe", alt: "Stripe" },
+  { src: "https://cdn.simpleicons.org/applepay", alt: "Apple Pay" },
+  { src: "https://cdn.simpleicons.org/googlepay", alt: "Google Pay" },
+  { src: "https://cdn.simpleicons.org/shopify", alt: "Shopify" },
+  { src: "https://cdn.simpleicons.org/ebay", alt: "eBay" },
+  { src: "https://cdn.simpleicons.org/americanexpress", alt: "American Express" },
+  { src: "https://cdn.simpleicons.org/samsung", alt: "Samsung Pay" },
 ];
 
 const features = [
@@ -177,7 +175,7 @@ export default function Home() {
           {/* ─── Logo Cloud ─────────────────────────────────── */}
           <ScrollReveal>
             <section className="logo-section">
-              <p className="section-eyebrow">Trusted Technology Stack</p>
+              <p className="section-eyebrow">Accepted Everywhere</p>
               <LogoCloud logos={logos} className="logo-cloud" />
             </section>
           </ScrollReveal>

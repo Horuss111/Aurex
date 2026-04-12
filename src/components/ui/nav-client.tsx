@@ -151,8 +151,13 @@ export function NavClient() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [hasApplication, setHasApplication] = useState(false);
   const { isSignedIn } = useUser();
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setHasApplication(!!localStorage.getItem("aurex_application"));
+  }, []);
 
   useEffect(() => {
     function handler(e: MouseEvent) {
@@ -224,6 +229,12 @@ export function NavClient() {
           <a href="#features">Exchange</a>
           <a href="#testimonials">Community</a>
           <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer">Contact us</a>
+          {hasApplication && (
+            <a href="/status" className="nav-app-status-link">
+              <span className="nav-app-status-dot" />
+              My Application
+            </a>
+          )}
         </div>
 
         {/* Center — logo */}
@@ -308,6 +319,11 @@ export function NavClient() {
           <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className="mobile-link" onClick={() => setMobileOpen(false)}>
             Contact us
           </a>
+          {hasApplication && (
+            <a href="/status" className="mobile-link" onClick={() => setMobileOpen(false)}>
+              My Application
+            </a>
+          )}
           <div className="mobile-divider" />
           <button
             className="mobile-link"

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 type CardType = "virtual" | "physical" | "both";
 
@@ -56,9 +57,13 @@ const cardTypes: { id: CardType; label: string; desc: string; badge?: string }[]
 const employmentOptions = ["Employed", "Self-Employed", "Student", "Retired", "Other"];
 const incomeOptions = ["Under $25K", "$25K – $50K", "$50K – $100K", "$100K – $200K", "$200K+"];
 
-export function RequestCardForm() {
+interface RequestCardFormProps {
+  onNameChange?: (name: string) => void;
+}
+
+export function RequestCardForm({ onNameChange }: RequestCardFormProps) {
+  const router = useRouter();
   const [step, setStep] = useState(0);
-  const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [touched, setTouched] = useState<TouchedFields>({});
@@ -68,8 +73,14 @@ export function RequestCardForm() {
     employment: "", income: "", address: "", city: "", country: "",
   });
 
-  const set = (key: keyof FormData, val: string) =>
+  const set = (key: keyof FormData, val: string) => {
     setForm((f) => ({ ...f, [key]: val }));
+    if ((key === "firstName" || key === "lastName") && onNameChange) {
+      const first = key === "firstName" ? val : form.firstName;
+      const last = key === "lastName" ? val : form.lastName;
+      onNameChange(`${first} ${last}`.trim());
+    }
+  };
 
   const touch = (key: keyof FormData) =>
     setTouched((t) => ({ ...t, [key]: true }));
@@ -90,22 +101,6 @@ export function RequestCardForm() {
       fields.push("address", "city", "country");
     setTouched((t) => Object.fromEntries([...Object.entries(t), ...fields.map((f) => [f, true])]));
   };
-
-  if (submitted) {
-    return (
-      <div className="rc-success">
-        <div className="rc-success-icon">✦</div>
-        <h2 className="rc-success-title">Application Submitted</h2>
-        <p className="rc-success-desc">
-          We&apos;re reviewing your application. You&apos;ll receive a decision at <strong>{form.email}</strong> within seconds.
-        </p>
-        {(form.cardType === "virtual" || form.cardType === "both") && (
-          <p className="rc-success-note">Your virtual card will be ready immediately upon approval.</p>
-        )}
-        <a href="/" className="btn-primary-solid rc-success-btn">Back to Home</a>
-      </div>
-    );
-  }
 
   return (
     <div className="rc-form-wrap">
@@ -319,13 +314,22 @@ export function RequestCardForm() {
               setLoading(true);
               setError(null);
               try {
-                const res = await fetch("/api/request-card", {
+                const refId = "AXR-" + Math.random().toString(36).substring(2, 10).toUpperCase();
+                localStorage.setItem("aurex_application", JSON.stringify({
+                  referenceId: refId,
+                  submittedAt: new Date().toISOString(),
+                  firstName: form.firstName,
+                  lastName: form.lastName,
+                  email: form.email,
+                  cardType: form.cardType,
+                }));
+                // Send email notification in the background — never block the user on this
+                fetch("/api/request-card", {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
                   body: JSON.stringify(form),
-                });
-                if (!res.ok) throw new Error("Failed to send email");
-                setSubmitted(true);
+                }).catch(() => {});
+                router.push("/status");
               } catch {
                 setError("Something went wrong. Please try again.");
               } finally {
