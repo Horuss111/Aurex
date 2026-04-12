@@ -1,4 +1,5 @@
 import { Resend } from "resend";
+import { supabaseAdmin } from "@/lib/supabase";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? "karimdiab7800@gmail.com";
@@ -6,6 +7,26 @@ const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? "karimdiab7800@gmail.com";
 export async function POST(request: Request) {
   const body = await request.json();
   const { firstName, lastName, email, phone, cardType, employment, income, address, city, country, dob } = body;
+
+  // Save to Supabase (best-effort — never block the user)
+  const refId = "AXR-" + Math.random().toString(36).substring(2, 10).toUpperCase();
+  supabaseAdmin.from("card_applications").insert({
+    reference_id: refId,
+    first_name: firstName,
+    last_name: lastName,
+    email,
+    phone: phone ?? null,
+    dob: dob ?? null,
+    card_type: cardType,
+    employment: employment ?? null,
+    income: income ?? null,
+    address: address ?? null,
+    city: city ?? null,
+    country: country ?? null,
+    status: "reviewing",
+  }).then(({ error }) => {
+    if (error) console.error("Supabase insert error:", error.message);
+  });
 
   const cardLabels: Record<string, string> = {
     virtual: "Virtual Card",
