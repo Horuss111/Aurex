@@ -4,13 +4,44 @@ import { supabaseAdmin } from "@/lib/supabase";
 const resend = new Resend(process.env.RESEND_API_KEY);
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? "karimdiab7800@gmail.com";
 
+// In-memory rate limiting (5 submissions per IP per minute)
+// Note: resets on cold starts in serverless environments
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+const RATE_LIMIT = 5;
+const WINDOW_MS = 60_000;
+
+function checkRateLimit(ip: string): boolean {
+  const now = Date.now();
+  const entry = rateLimitMap.get(ip);
+  if (!entry || now > entry.resetAt) {
+    rateLimitMap.set(ip, { count: 1, resetAt: now + WINDOW_MS });
+    return true;
+  }
+  if (entry.count >= RATE_LIMIT) return false;
+  entry.count++;
+  return true;
+}
+
 export async function POST(request: Request) {
+  const ip =
+    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+    request.headers.get("x-real-ip") ??
+    "unknown";
+
+  if (!checkRateLimit(ip)) {
+    return Response.json(
+      { error: "Too many requests. Please wait a moment and try again." },
+      { status: 429 }
+    );
+  }
+
   const body = await request.json();
   const { firstName, lastName, email, phone, cardType, employment, income, address, city, country, dob } = body;
 
-  // Save to Supabase (best-effort — never block the user)
   const refId = "AXR-" + Math.random().toString(36).substring(2, 10).toUpperCase();
-  supabaseAdmin.from("card_applications").insert({
+
+  // Save to Supabase
+  const { error: dbError } = await supabaseAdmin.from("card_applications").insert({
     reference_id: refId,
     first_name: firstName,
     last_name: lastName,
@@ -24,9 +55,8 @@ export async function POST(request: Request) {
     city: city ?? null,
     country: country ?? null,
     status: "reviewing",
-  }).then(({ error }) => {
-    if (error) console.error("Supabase insert error:", error.message);
   });
+  if (dbError) console.error("Supabase insert error:", dbError.message);
 
   const cardLabels: Record<string, string> = {
     virtual: "Virtual Card",
@@ -178,5 +208,5 @@ export async function POST(request: Request) {
     html: applicantHtml,
   }).catch((err) => console.error("Applicant confirmation email failed:", err));
 
-  return Response.json({ success: true });
+  return Response.json({ success: true, referenceId: refId });
 }

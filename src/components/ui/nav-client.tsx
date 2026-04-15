@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
-import { UserButton, useUser, SignOutButton } from "@clerk/nextjs";
+import { UserButton, useUser } from "@clerk/nextjs";
 
 const WHATSAPP_URL = "https://wa.me/201006741810";
 
@@ -228,13 +228,8 @@ export function NavClient() {
 
           <a href="#features">Exchange</a>
           <a href="#testimonials">Community</a>
-          <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer">Contact us</a>
-          {hasApplication && (
-            <a href="/status" className="nav-app-status-link">
-              <span className="nav-app-status-dot" />
-              My Application
-            </a>
-          )}
+          <a href="/about">About</a>
+          <a href="/contact">Contact</a>
         </div>
 
         {/* Center — logo */}
@@ -262,8 +257,19 @@ export function NavClient() {
             <kbd className="search-kbd">⌘K</kbd>
           </div>
 
-          {!isSignedIn && (
-            <a href="/sign-in" className="sign-in">Sign in /</a>
+          {!isSignedIn ? (
+            <a href="/sign-in" className="nav-sign-in">Sign in</a>
+          ) : (
+            <a href="/dashboard" className="nav-dashboard-btn">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                <rect x="3" y="3" width="7" height="7" rx="1.5" />
+                <rect x="14" y="3" width="7" height="7" rx="1.5" />
+                <rect x="3" y="14" width="7" height="7" rx="1.5" />
+                <rect x="14" y="14" width="7" height="7" rx="1.5" />
+              </svg>
+              Dashboard
+              {hasApplication && <span className="nav-dashboard-dot" />}
+            </a>
           )}
 
           <a href="/request-card" className="btn-get">
@@ -274,16 +280,7 @@ export function NavClient() {
             Request a Card
           </a>
 
-          {isSignedIn && (
-            <>
-              <UserButton />
-              <SignOutButton>
-                <button className="btn-get">
-                  Sign out
-                </button>
-              </SignOutButton>
-            </>
-          )}
+          {isSignedIn && <UserButton />}
 
           <ThemeToggle />
 
@@ -316,9 +313,13 @@ export function NavClient() {
           <div className="mobile-divider" />
           <a href="#features" className="mobile-link" onClick={() => setMobileOpen(false)}>Exchange</a>
           <a href="#testimonials" className="mobile-link" onClick={() => setMobileOpen(false)}>Community</a>
-          <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className="mobile-link" onClick={() => setMobileOpen(false)}>
-            Contact us
-          </a>
+          <a href="/about" className="mobile-link" onClick={() => setMobileOpen(false)}>About</a>
+          <a href="/contact" className="mobile-link" onClick={() => setMobileOpen(false)}>Contact</a>
+          {isSignedIn && (
+            <a href="/dashboard" className="mobile-link" onClick={() => setMobileOpen(false)}>
+              Dashboard
+            </a>
+          )}
           {hasApplication && (
             <a href="/status" className="mobile-link" onClick={() => setMobileOpen(false)}>
               My Application
@@ -338,12 +339,7 @@ export function NavClient() {
           <div className="mobile-divider" />
           <div className="mobile-cta-row">
             {isSignedIn ? (
-              <>
-                <UserButton />
-                <SignOutButton>
-                  <button className="btn-primary-solid mobile-cta-btn">Sign out</button>
-                </SignOutButton>
-              </>
+              <UserButton />
             ) : (
               <a href="/sign-in" className="btn-primary-solid mobile-cta-btn" onClick={() => setMobileOpen(false)}>Sign in</a>
             )}

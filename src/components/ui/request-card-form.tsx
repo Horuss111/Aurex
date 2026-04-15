@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useToast } from "@/components/ui/toast";
 
 type CardType = "virtual" | "physical" | "both";
 
@@ -63,6 +64,7 @@ interface RequestCardFormProps {
 
 export function RequestCardForm({ onNameChange }: RequestCardFormProps) {
   const router = useRouter();
+  const { toast } = useToast();
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -314,7 +316,26 @@ export function RequestCardForm({ onNameChange }: RequestCardFormProps) {
               setLoading(true);
               setError(null);
               try {
-                const refId = "AXR-" + Math.random().toString(36).substring(2, 10).toUpperCase();
+                const res = await fetch("/api/request-card", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify(form),
+                });
+                if (!res.ok) {
+                  const data = await res.json().catch(() => ({}));
+                  if (res.status === 429) {
+                    const msg = "Too many applications. Please wait a minute and try again.";
+                    setError(msg);
+                    toast(msg, "error");
+                  } else {
+                    const msg = data.error ?? "Something went wrong. Please try again.";
+                    setError(msg);
+                    toast(msg, "error");
+                  }
+                  return;
+                }
+                const data = await res.json();
+                const refId = data.referenceId;
                 localStorage.setItem("aurex_application", JSON.stringify({
                   referenceId: refId,
                   submittedAt: new Date().toISOString(),
@@ -323,15 +344,12 @@ export function RequestCardForm({ onNameChange }: RequestCardFormProps) {
                   email: form.email,
                   cardType: form.cardType,
                 }));
-                // Send email notification in the background — never block the user on this
-                fetch("/api/request-card", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify(form),
-                }).catch(() => {});
+                toast("Application submitted! Redirecting…", "success");
                 router.push("/status");
               } catch {
-                setError("Something went wrong. Please try again.");
+                const msg = "Something went wrong. Please try again.";
+                setError(msg);
+                toast(msg, "error");
               } finally {
                 setLoading(false);
               }

@@ -5,6 +5,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Analytics } from "@vercel/analytics/next";
 import { CookieBanner } from "@/components/ui/cookie-banner";
+import { ToastProvider } from "@/components/ui/toast";
 import { cn } from "@/lib/utils";
 
 const geist = Geist({subsets:['latin'],variable:'--font-sans'});
@@ -53,8 +54,10 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            {children}
-            <CookieBanner />
+            <ToastProvider>
+              {children}
+              <CookieBanner />
+            </ToastProvider>
           </ThemeProvider>
         </ClerkProvider>
         <Analytics />
