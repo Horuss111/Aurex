@@ -173,7 +173,14 @@ export default function DashboardPage() {
     if (!user) { setLoading(false); return; }
 
     fetch("/api/dashboard/application")
-      .then((r) => r.json())
+      .then(async (r) => {
+        const text = await r.text();
+        try {
+          return JSON.parse(text);
+        } catch {
+          throw new Error(`Server error (${r.status})`);
+        }
+      })
       .then((d) => {
         if (d.error) setError(d.error);
         else {
@@ -182,7 +189,7 @@ export default function DashboardPage() {
           if (list.length > 0) setSelectedId(list[0].id);
         }
       })
-      .catch(() => setError("Failed to load your application."))
+      .catch((e: Error) => setError(e.message || "Failed to load your application."))
       .finally(() => setLoading(false));
   }, [isLoaded, user]);
 
