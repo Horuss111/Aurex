@@ -7,13 +7,20 @@ export async function GET() {
 
   const user = await currentUser();
   const email = user?.emailAddresses[0]?.emailAddress;
-  if (!email) return Response.json({ error: "No email found" }, { status: 400 });
 
-  const { data, error } = await supabaseAdmin
+  // Query by userId (reliable) with email fallback for older rows
+  let query = supabaseAdmin
     .from("card_applications")
     .select("*")
-    .eq("email", email)
     .order("submitted_at", { ascending: false });
+
+  if (email) {
+    query = query.or(`user_id.eq.${userId},email.eq.${email}`);
+  } else {
+    query = query.eq("user_id", userId);
+  }
+
+  const { data, error } = await query;
 
   if (error) return Response.json({ error: error.message }, { status: 500 });
 

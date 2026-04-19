@@ -1,3 +1,4 @@
+import { auth } from "@clerk/nextjs/server";
 import { Resend } from "resend";
 import { supabaseAdmin } from "@/lib/supabase";
 
@@ -23,6 +24,8 @@ function checkRateLimit(ip: string): boolean {
 }
 
 export async function POST(request: Request) {
+  const { userId } = await auth();
+
   const ip =
     request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
     request.headers.get("x-real-ip") ??
@@ -43,6 +46,7 @@ export async function POST(request: Request) {
   // Save to Supabase
   const { error: dbError } = await supabaseAdmin.from("card_applications").insert({
     reference_id: refId,
+    user_id: userId ?? null,
     first_name: firstName,
     last_name: lastName,
     email,
