@@ -6,6 +6,8 @@ import { DottedSurface } from "@/components/ui/dotted-surface";
 import { GlassNavbar } from "@/components/ui/glass-navbar";
 import { NavClient } from "@/components/ui/nav-client";
 
+type DashTab = "status" | "controls" | "support";
+
 interface Application {
   id: string;
   reference_id: string;
@@ -167,6 +169,18 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<DashTab>("status");
+
+  // Card controls
+  const [frozen, setFrozen] = useState(false);
+  const [freezeLoading, setFreezeLoading] = useState(false);
+  const [freezeMsg, setFreezeMsg] = useState<string | null>(null);
+
+  // Support form
+  const [supportSubject, setSupportSubject] = useState("");
+  const [supportMessage, setSupportMessage] = useState("");
+  const [supportLoading, setSupportLoading] = useState(false);
+  const [supportResult, setSupportResult] = useState<{ type: "success" | "error"; msg: string } | null>(null);
 
   useEffect(() => {
     if (!isLoaded) return;
@@ -192,6 +206,59 @@ export default function DashboardPage() {
       .catch((e: Error) => setError(e.message || "Failed to load your application."))
       .finally(() => setLoading(false));
   }, [isLoaded, user]);
+
+  async function handleFreeze(appId: string, nextFrozen: boolean) {
+    setFreezeLoading(true);
+    setFreezeMsg(null);
+    try {
+      const res = await fetch(`/api/card/${appId}/freeze`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ frozen: nextFrozen }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setFrozen(nextFrozen);
+        setFreezeMsg(nextFrozen ? "Card frozen successfully." : "Card unfrozen successfully.");
+      } else {
+        setFreezeMsg(data.error ?? "Failed to update card.");
+      }
+    } catch {
+      setFreezeMsg("Network error. Please try again.");
+    } finally {
+      setFreezeLoading(false);
+    }
+  }
+
+  async function handleSupportSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setSupportLoading(true);
+    setSupportResult(null);
+    try {
+      const res = await fetch("/api/support", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          subject: supportSubject,
+          message: supportMessage,
+          referenceId: apps.find((a) => a.id === selectedId)?.reference_id ?? "",
+          email: user?.emailAddresses[0]?.emailAddress ?? "",
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSupportResult({ type: "success", msg: `Ticket submitted — ${data.ticketId}. We'll reply within a few hours.` });
+        setSupportSubject("");
+        setSupportMessage("");
+      } else {
+        setSupportResult({ type: "error", msg: data.error ?? "Failed to submit ticket." });
+      }
+    } catch {
+      setSupportResult({ type: "error", msg: "Network error. Please try again." });
+    } finally {
+      setSupportLoading(false);
+    }
+  }
 
   // Loading
   if (!isLoaded || loading) {
@@ -309,7 +376,18 @@ export default function DashboardPage() {
                   <span className="eyebrow-line" />
                 </p>
 
-                <CardMockup name={`${selected.first_name} ${selected.last_name}`} />
+                <div style={{ position: "relative" }}>
+                  <CardMockup name={`${selected.first_name} ${selected.last_name}`} />
+                  {frozen && (
+                    <div className="dash-frozen-overlay">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <rect x="3" y="11" width="18" height="11" rx="2" />
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                      </svg>
+                      Card Frozen
+                    </div>
+                  )}
+                </div>
 
                 <div className="status-badge-wrap">
                   <div className={`status-badge-dot ${selected.status === "rejected" ? "dash-dot-rejected" : ""}`} />
@@ -322,60 +400,197 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              {/* Right — timeline + details */}
+              {/* Right — tabbed content */}
               <div className="dash-right">
-                <h2 className="dash-section-title">Application Status</h2>
 
-                {selected.status === "rejected" && (
-                  <div className="dash-rejected-notice">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <circle cx="12" cy="12" r="10" />
-                      <line x1="12" y1="8" x2="12" y2="12" />
-                      <line x1="12" y1="16" x2="12.01" y2="16" />
-                    </svg>
-                    Your application was not approved. You may reapply at any time.
+                {/* Tab bar */}
+                <div className="dash-tabs">
+                  {(["status", "controls", "support"] as DashTab[]).map((tab) => (
+                    <button
+                      key={tab}
+                      className={`dash-tab ${activeTab === tab ? "dash-tab-active" : ""}`}
+                      onClick={() => { setActiveTab(tab); setFreezeMsg(null); setSupportResult(null); }}
+                    >
+                      {tab === "status" && "Application Status"}
+                      {tab === "controls" && "Card Controls"}
+                      {tab === "support" && "Support"}
+                    </button>
+                  ))}
+                </div>
+
+                {/* ── Tab: Status ── */}
+                {activeTab === "status" && (
+                  <>
+                    {selected.status === "rejected" && (
+                      <div className="dash-rejected-notice">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <circle cx="12" cy="12" r="10" />
+                          <line x1="12" y1="8" x2="12" y2="12" />
+                          <line x1="12" y1="16" x2="12.01" y2="16" />
+                        </svg>
+                        Your application was not approved. You may reapply at any time.
+                      </div>
+                    )}
+
+                    <Timeline status={selected.status} />
+
+                    <div className="status-summary" style={{ marginTop: "2rem" }}>
+                      <p className="status-summary-title">Application Details</p>
+                      {[
+                        { label: "Name", value: `${selected.first_name} ${selected.last_name}` },
+                        { label: "Email", value: selected.email },
+                        { label: "Card Type", value: CARD_TYPE_LABELS[selected.card_type] ?? selected.card_type },
+                        { label: "Submitted", value: submittedDate },
+                        selected.phone ? { label: "Phone", value: selected.phone } : null,
+                        selected.employment ? { label: "Employment", value: selected.employment } : null,
+                      ]
+                        .filter(Boolean)
+                        .map((row) => row && (
+                          <div className="status-summary-row" key={row.label}>
+                            <span className="status-summary-label">{row.label}</span>
+                            <span className="status-summary-value">{row.value}</span>
+                          </div>
+                        ))}
+                    </div>
+
+                    <div className="dash-actions-row">
+                      <button className="status-support-btn" onClick={() => setActiveTab("support")}>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                        </svg>
+                        Contact support
+                      </button>
+                      {selected.status === "rejected" && (
+                        <a href="/request-card" className="btn-primary-solid" style={{ fontSize: "0.85rem", padding: "0.55rem 1.1rem" }}>
+                          Reapply →
+                        </a>
+                      )}
+                    </div>
+                  </>
+                )}
+
+                {/* ── Tab: Card Controls ── */}
+                {activeTab === "controls" && (
+                  <div className="dash-controls">
+                    <h2 className="dash-section-title">Card Controls</h2>
+                    <p className="dash-controls-desc">
+                      Manage your card security settings. Freezing your card instantly blocks all new transactions while keeping your account active.
+                    </p>
+
+                    <div className="dash-control-row">
+                      <div className="dash-control-info">
+                        <div className="dash-control-icon">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <rect x="3" y="11" width="18" height="11" rx="2" />
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                          </svg>
+                        </div>
+                        <div>
+                          <p className="dash-control-title">Freeze Card</p>
+                          <p className="dash-control-sub">
+                            {frozen ? "Your card is currently frozen. No transactions will be processed." : "Temporarily block all transactions on this card."}
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        className={`dash-freeze-btn ${frozen ? "dash-freeze-btn-active" : ""}`}
+                        onClick={() => handleFreeze(selected.id, !frozen)}
+                        disabled={freezeLoading || selected.status !== "approved" && selected.status !== "shipped"}
+                      >
+                        {freezeLoading ? "…" : frozen ? "Unfreeze" : "Freeze"}
+                      </button>
+                    </div>
+
+                    {(selected.status === "reviewing" || selected.status === "rejected") && (
+                      <p className="dash-controls-notice">Card controls are available once your application is approved.</p>
+                    )}
+
+                    {freezeMsg && (
+                      <div className={`dash-control-msg ${frozen ? "dash-control-msg-info" : "dash-control-msg-ok"}`}>
+                        {freezeMsg}
+                      </div>
+                    )}
+
+                    <div className="dash-control-row" style={{ marginTop: "1rem", opacity: 0.4, pointerEvents: "none" }}>
+                      <div className="dash-control-info">
+                        <div className="dash-control-icon">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
+                          </svg>
+                        </div>
+                        <div>
+                          <p className="dash-control-title">Spending Limits</p>
+                          <p className="dash-control-sub">Set daily or per-transaction spend caps.</p>
+                        </div>
+                      </div>
+                      <span className="service-badge">Coming soon</span>
+                    </div>
+
+                    <div className="dash-control-row" style={{ opacity: 0.4, pointerEvents: "none" }}>
+                      <div className="dash-control-info">
+                        <div className="dash-control-icon">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <rect x="2" y="5" width="20" height="14" rx="2" /><line x1="2" y1="10" x2="22" y2="10" />
+                          </svg>
+                        </div>
+                        <div>
+                          <p className="dash-control-title">Request Replacement</p>
+                          <p className="dash-control-sub">Order a new card if yours is lost or damaged.</p>
+                        </div>
+                      </div>
+                      <span className="service-badge">Coming soon</span>
+                    </div>
                   </div>
                 )}
 
-                <Timeline status={selected.status} />
+                {/* ── Tab: Support ── */}
+                {activeTab === "support" && (
+                  <div className="dash-support">
+                    <h2 className="dash-section-title">Contact Support</h2>
+                    <p className="dash-controls-desc">
+                      Submit a support request and our team will reply via email within a few hours.
+                    </p>
 
-                <div className="status-summary" style={{ marginTop: "2rem" }}>
-                  <p className="status-summary-title">Application Details</p>
-                  {[
-                    { label: "Name", value: `${selected.first_name} ${selected.last_name}` },
-                    { label: "Email", value: selected.email },
-                    { label: "Card Type", value: CARD_TYPE_LABELS[selected.card_type] ?? selected.card_type },
-                    { label: "Submitted", value: submittedDate },
-                    selected.phone ? { label: "Phone", value: selected.phone } : null,
-                    selected.employment ? { label: "Employment", value: selected.employment } : null,
-                  ]
-                    .filter(Boolean)
-                    .map((row) => row && (
-                      <div className="status-summary-row" key={row.label}>
-                        <span className="status-summary-label">{row.label}</span>
-                        <span className="status-summary-value">{row.value}</span>
+                    <form onSubmit={handleSupportSubmit} className="dash-support-form">
+                      <div className="dash-field">
+                        <label className="dash-field-label">Subject</label>
+                        <input
+                          className="dash-field-input"
+                          type="text"
+                          placeholder="e.g. I have a question about my application"
+                          value={supportSubject}
+                          onChange={(e) => setSupportSubject(e.target.value)}
+                          required
+                        />
                       </div>
-                    ))}
-                </div>
+                      <div className="dash-field">
+                        <label className="dash-field-label">Message</label>
+                        <textarea
+                          className="dash-field-input dash-field-textarea"
+                          placeholder="Describe your issue in detail…"
+                          rows={5}
+                          value={supportMessage}
+                          onChange={(e) => setSupportMessage(e.target.value)}
+                          required
+                        />
+                      </div>
+                      {supportResult && (
+                        <div className={`dash-control-msg ${supportResult.type === "success" ? "dash-control-msg-ok" : "dash-control-msg-err"}`}>
+                          {supportResult.msg}
+                        </div>
+                      )}
+                      <button
+                        type="submit"
+                        className="btn-primary-solid"
+                        disabled={supportLoading}
+                        style={{ fontSize: "0.88rem", padding: "0.6rem 1.4rem", width: "fit-content" }}
+                      >
+                        {supportLoading ? "Submitting…" : "Submit Ticket →"}
+                      </button>
+                    </form>
+                  </div>
+                )}
 
-                <div className="dash-actions-row">
-                  <a
-                    href="https://wa.me/201006741810"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="status-support-btn"
-                  >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-                    </svg>
-                    Contact support
-                  </a>
-                  {selected.status === "rejected" && (
-                    <a href="/request-card" className="btn-primary-solid" style={{ fontSize: "0.85rem", padding: "0.55rem 1.1rem" }}>
-                      Reapply →
-                    </a>
-                  )}
-                </div>
               </div>
             </div>
           </div>

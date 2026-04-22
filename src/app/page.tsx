@@ -12,6 +12,7 @@ import { AnimatedHeroGraphic } from "@/components/ui/animated-hero-graphic";
 import { SplineScene } from "@/components/ui/splite";
 import { Spotlight } from "@/components/ui/spotlight";
 import { AnimatedHero } from "@/components/ui/animated-hero";
+import { TechStack } from "@/components/ui/tech-stack";
 
 const logos = [
   { src: "https://cdn.simpleicons.org/visa", alt: "Visa" },
@@ -63,6 +64,76 @@ const steps = [
   { number: "01", title: "Apply Online", description: "Fill out a quick application in under two minutes — no paperwork, no branch visit required." },
   { number: "02", title: "Get Approved", description: "Our AI-powered review process delivers a decision in seconds, not days." },
   { number: "03", title: "Use Anywhere", description: "Your virtual card is ready instantly. Your physical Aurex card ships within 3–5 business days." },
+];
+
+const services = [
+  {
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+        <rect x="2" y="5" width="20" height="14" rx="2" />
+        <line x1="2" y1="10" x2="22" y2="10" />
+      </svg>
+    ),
+    title: "Card Management",
+    description: "Freeze or unfreeze your card instantly from your dashboard. Full control of your card at any time, from anywhere.",
+    badge: "Dashboard",
+  },
+  {
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+      </svg>
+    ),
+    title: "Live Application Tracking",
+    description: "Track your card application in real time with a unique reference ID — from submission to approval to shipment.",
+    badge: "Real-time",
+  },
+  {
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+      </svg>
+    ),
+    title: "Support Tickets",
+    description: "Submit a support request directly from your dashboard. Our team is notified instantly and replies within hours.",
+    badge: "Dashboard",
+  },
+  {
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+      </svg>
+    ),
+    title: "Secure Auth",
+    description: "Every account is protected by Clerk — industry-standard JWT authentication with multi-factor support built in.",
+    badge: "Always on",
+  },
+  {
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+        <circle cx="12" cy="12" r="10" />
+        <line x1="2" y1="12" x2="22" y2="12" />
+        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+      </svg>
+    ),
+    title: "Global Payments",
+    description: "Pay in 150+ currencies at the real interbank rate. Zero foreign transaction fees on every purchase worldwide.",
+    badge: "150+ countries",
+  },
+  {
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+        <polyline points="14 2 14 8 20 8" />
+        <line x1="16" y1="13" x2="8" y2="13" />
+        <line x1="16" y1="17" x2="8" y2="17" />
+        <polyline points="10 9 9 9 8 9" />
+      </svg>
+    ),
+    title: "Email Notifications",
+    description: "Automated transactional emails for every key event — application received, status updates, and support replies.",
+    badge: "Automated",
+  },
 ];
 
 const stats = [
@@ -228,6 +299,35 @@ export default function Home() {
             </section>
           </ScrollReveal>
 
+          {/* ─── Services ───────────────────────────────────── */}
+          <ScrollReveal>
+            <section className="services-section" id="services">
+              <div className="section-header">
+                <p className="section-eyebrow">Services</p>
+                <h2 className="section-title">More than a card.<br />A full suite of services.</h2>
+                <p className="services-subtitle">
+                  From the moment you apply to the day-to-day management of your account, every service runs on a modern, secure backend.
+                </p>
+              </div>
+              <div className="services-grid">
+                {services.map((s, i) => (
+                  <ScrollReveal key={s.title} delay={i * 60}>
+                    <div className="service-card">
+                      <div className="service-icon">{s.icon}</div>
+                      <div className="service-body">
+                        <div className="service-header">
+                          <h3 className="service-title">{s.title}</h3>
+                          <span className="service-badge">{s.badge}</span>
+                        </div>
+                        <p className="service-desc">{s.description}</p>
+                      </div>
+                    </div>
+                  </ScrollReveal>
+                ))}
+              </div>
+            </section>
+          </ScrollReveal>
+
           {/* ─── Testimonials ───────────────────────────────── */}
           <ScrollReveal>
             <Testimonials />
@@ -347,6 +447,11 @@ export default function Home() {
                 ))}
               </div>
             </section>
+          </ScrollReveal>
+
+          {/* ─── Tech Stack ─────────────────────────────────── */}
+          <ScrollReveal>
+            <TechStack />
           </ScrollReveal>
 
           {/* ─── FAQ ────────────────────────────────────────── */}
